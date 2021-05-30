@@ -1,49 +1,43 @@
-using BankApi.Models;
 using BankApi.Services;
-using BankApi.Services.Interfaces;
-using FakeItEasy;
-using System;
 using Xunit;
 
 namespace BankApi.UnitTests
 {
     public class LoanServiceTests
     {
-        private readonly LoanService _loanService;
-        private readonly ICalculationService _calculationService;
+        private readonly LoanService _calculationService;
         public LoanServiceTests()
         {
-            _calculationService = A.Fake<ICalculationService>();
-            _loanService = new LoanService(_calculationService);
+            _calculationService = new LoanService();
         }
-        [Fact]
-        public void GetPaymentOverview_differentScenarios()
+        [Theory]
+        [InlineData(1, 10000, 500000, 5000)]
+        [InlineData(1, 2000, 500000, 2000)]
+        [InlineData(1, 5000, 100000, 1000)]
+        public void CountAdminFee_Tests(double adminFeeRate, double adminFeeMaxAmount, double loanAmount, double expected)
         {
-            var request = new CalculationRequest
-            {
-                LoanAmount = 500000,
-                DurationInYears = 10
-            };
+            var result = _calculationService.CountAdminFee(adminFeeRate, adminFeeMaxAmount, loanAmount);
+            Assert.Equal(expected, result);
+        }
 
-            var expectedResult= new CalculationResponse
-            {
-                MonthlyPayment = 5303.28,
-                TotAmountOfInterest = 136393.6,
-                AdminFee = 5000,
-                APR = 2.83
-            };
+        [Theory]
+        [InlineData(500000, 5, 120, 5303.28)]
+        [InlineData(100000, 4, 60, 1841.65)]
+        [InlineData(300000, 6, 12, 25819.93)]
+        public void CountMonthlyPayment_Tests(double loanAmount, double yearlyInterestRate, int numberOfMonths, double expected)
+        {
+            var result = _calculationService.CountMonthlyPayment(loanAmount, yearlyInterestRate, numberOfMonths);
+            Assert.Equal(expected, result);
+        }
 
-            var callToCountAdminFee = A.CallTo(() => _calculationService.CountAdminFee(1, 10000, 500000));
-            callToCountAdminFee.Returns(5000);
-            var callToCountMonthlyPayment = A.CallTo(() => _calculationService.CountMonthlyPayment(500000, 5, 120));
-            callToCountMonthlyPayment.Returns(5303.28);
-            var callToCountAPR = A.CallTo(() => _calculationService.CountAPR(500000, 136393.6, 10, 5000));
-            callToCountAPR.Returns(2.83);
-            var result = _loanService.GetPaymentOverview(request);
-            Assert.Equal(expectedResult.MonthlyPayment, result.MonthlyPayment);
-            Assert.Equal(expectedResult.TotAmountOfInterest, result.TotAmountOfInterest);
-            Assert.Equal(expectedResult.AdminFee, result.AdminFee);
-            Assert.Equal(expectedResult.APR, result.APR);
+        [Theory]
+        [InlineData(500000, 136393.6, 10, 5000, 2.83)]
+        [InlineData(600000, 62994.6, 5, 6000, 2.3)]
+        [InlineData(1000000, 583894.4, 20, 10000, 2.97)]
+        public void CountAPR_Tests(double loanAmount, double totalInterestPaid, int numberOfYears, double fees, double expected)
+        {
+            var result = _calculationService.CountAPR(loanAmount, totalInterestPaid, numberOfYears,fees);
+            Assert.Equal(expected, result);
         }
     }
 }

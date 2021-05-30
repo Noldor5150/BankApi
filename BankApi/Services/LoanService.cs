@@ -1,36 +1,36 @@
-﻿using BankApi.Models;
-using BankApi.Services.Interfaces;
+﻿using BankApi.Services.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BankApi.Services
 {
     public class LoanService : ILoanService
     {
-        private readonly ICalculationService _calculationService;
-        public LoanService(ICalculationService calculationService)
+        public double CountAdminFee(double adminFeeRate, double adminFeeMaxAmount, double loanAmount)
         {
-            _calculationService = calculationService;
-        }
-        public CalculationResponse GetPaymentOverview(CalculationRequest request)
-        {
-            int NumberOfMonths = request.DurationInYears * 12;
-            double Fees = _calculationService.CountAdminFee(request.AdminFeeRate, request.AdminFeeMaxAmount, request.LoanAmount);
-            double Payment = _calculationService.CountMonthlyPayment(request.LoanAmount, request.AnualInterestRate, NumberOfMonths);
-            double TotalInterest = Math.Round(Payment * NumberOfMonths - request.LoanAmount, 2);
-            double _APR = _calculationService.CountAPR(request.LoanAmount, TotalInterest, request.DurationInYears, Fees);
+            double adminFeeAmount;
+            if (loanAmount * adminFeeRate / 100 >= adminFeeMaxAmount)
             {
-                return new CalculationResponse
-                {
-                    AdminFee = Fees,
-                    MonthlyPayment = Payment,
-                    TotAmountOfInterest = TotalInterest,
-                    APR = _APR
-                };
+                adminFeeAmount = adminFeeMaxAmount;
             }
+            else
+            {
+                adminFeeAmount = loanAmount * adminFeeRate / 100;
+            }
+            return adminFeeAmount;
         }
 
+        public double CountMonthlyPayment(double loanAmount, double yearlyInterestRate, int numberOfMonths)
+        {
+            double monthlyInterestRate = yearlyInterestRate / 12 / 100;
+            double monthlyPaymentAmount = Math.Round(loanAmount * monthlyInterestRate / (1 - Math.Pow(1 + monthlyInterestRate, -1 * numberOfMonths)), 2);
+            return monthlyPaymentAmount;
+        }
+
+        public double CountAPR(double loanAmount, double totalInterestPaid, int numberOfYears, double fees)
+        {
+            int numberOfDays = numberOfYears * 365;
+            double apr = Math.Round(((fees + totalInterestPaid) / loanAmount) / numberOfDays * 365 * 100, 2);
+            return apr;
+        }
     }
 }

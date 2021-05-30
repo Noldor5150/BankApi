@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace BankApi.Models
+﻿namespace BankApi.Models
 {
-    public class CalculationResponse
+    public class PaymentOverviewResponse
     {
         public double MonthlyPayment { get; set; }
         public double TotAmountOfInterest { get; set; }

@@ -1,13 +1,9 @@
-﻿using BankApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace BankApi.Services.Interfaces
+﻿namespace BankApi.Services.Interfaces
 {
-   public interface ILoanService
+    public interface ILoanService
     {
-        public CalculationResponse GetPaymentOverview(CalculationRequest request);
+        double CountAdminFee(double adminFeeRate, double adminFeeMaxAmount, double loanAmount);
+        double CountMonthlyPayment(double loanAmount, double yearlyInterestRate, int numberOfMonths);
+        double CountAPR(double loanAmount, double totalInterestPaid, int numberOfYears, double fees);
     }
 }

@@ -1,13 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BankApi.Models
 {
-    public class CalculationRequest
+    public class PaymentOverviewRequest
     {
         [Range(1000, 10000000000)]
         public double LoanAmount { get; set; }
